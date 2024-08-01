@@ -106,6 +106,10 @@ cc_defaults {
     header_libs: [
         "libbinder_headers",
     ],
+
+    cflags: [
+        "-O3",
+    ],
 }
 
 cc_defaults {
