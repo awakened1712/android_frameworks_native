@@ -250,6 +250,7 @@ cc_defaults {
     ],
 
     cflags: [
+        "-O3",
         "-Wextra",
         "-Wextra-semi",
         "-Werror",
