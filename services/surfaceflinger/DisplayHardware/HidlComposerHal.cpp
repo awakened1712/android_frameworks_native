@@ -215,7 +215,7 @@ sp<GraphicBuffer> allocateClearSlotBuffer() {
     if (!buffer || buffer->initCheck() != ::android::OK) {
         return nullptr;
     }
-    return std::move(buffer);
+    return buffer;
 }
 
 } // anonymous namespace
