@@ -1211,6 +1211,10 @@ restart_write:
         //printf("Writing %ld bytes, padded to %ld\n", len, padded);
         uint8_t* const data = mData+mDataPos;
 
+        if (status_t status = validateReadData(mDataPos + padded); status != OK) {
+            return nullptr; // drops status
+        }
+
         // Need to pad at end?
         if (padded != len) {
 #if BYTE_ORDER == BIG_ENDIAN
@@ -1792,6 +1796,10 @@ status_t Parcel::writeObject(const flat_binder_object& val, bool nullMetaData)
     const bool enoughObjects = kernelFields->mObjectsSize < kernelFields->mObjectsCapacity;
     if (enoughData && enoughObjects) {
 restart_write:
+        if (status_t status = validateReadData(mDataPos + sizeof(val)); status != OK) {
+            return status;
+        }
+
         *reinterpret_cast<flat_binder_object*>(mData+mDataPos) = val;
 
         // remember if it's a file descriptor
@@ -2035,6 +2043,10 @@ status_t Parcel::writeAligned(T val) {
 
     if ((mDataPos+sizeof(val)) <= mDataCapacity) {
 restart_write:
+        if (status_t status = validateReadData(mDataPos + sizeof(val)); status != OK) {
+            return status;
+        }
+
         memcpy(mData + mDataPos, &val, sizeof(val));
         return finishWrite(sizeof(val));
     }
@@ -2938,6 +2950,14 @@ status_t Parcel::growData(size_t len)
     if (len > INT32_MAX) {
         // don't accept size_t values which may have come from an
         // inadvertent conversion from a negative int.
+        return BAD_VALUE;
+    }
+
+    if (mDataPos > mDataSize) {
+        // b/370831157 - this case used to abort. We also don't expect mDataPos < mDataSize, but
+        // this would only waste a bit of memory, so it's okay.
+        ALOGE("growData only expected at the end of a Parcel. pos: %zu, size: %zu, capacity: %zu",
+              mDataPos, len, mDataCapacity);
         return BAD_VALUE;
     }
 

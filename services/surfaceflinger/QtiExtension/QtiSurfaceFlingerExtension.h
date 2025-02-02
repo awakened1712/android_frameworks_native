@@ -257,6 +257,19 @@ public:
     bool qtiFbScalingOnDisplayChange(const wp<IBinder>& displayToken, sp<DisplayDevice> display,
                                      const DisplayDeviceState& drawingState) override;
     void qtiFbScalingOnPowerChange(sp<DisplayDevice> display) override;
+    void qtiDumpMini(std::string& result) override;
+    status_t qtiDoDumpContinuous(int fd, const DumpArgs& args) override;
+    void qtiDumpDrawCycle(bool prePrepare) override;
+
+    struct {
+      Mutex lock;
+      const char *name = "/data/misc/wmtrace/dumpsys.txt";
+      bool running = false;
+      bool noLimit = false;
+      bool fullDump = false;
+      bool replaceAfterCommit = false;
+      long long int position = 0;
+    } mFileDump;
 
     /*
      * Methods for multiple displays

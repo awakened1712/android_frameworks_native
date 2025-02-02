@@ -1205,6 +1205,11 @@ int Surface::queueBuffer(android_native_buffer_t* buffer, int fenceFd) {
     sp<Fence> fence = input.fence;
 
     nsecs_t now = systemTime();
+    /* QTI_BEGIN */
+    if (mQtiSurfaceExtn) {
+        mQtiSurfaceExtn->qtiTrackTransaction(mNextFrameNumber, now);
+    }
+    /* QTI_END */
 
     status_t err = mGraphicBufferProducer->queueBuffer(i, input, &output);
     mLastQueueDuration = systemTime() - now;
@@ -1381,6 +1386,12 @@ int Surface::query(int what, int* value) const {
             }
         }
     }
+
+    /* QTI_BEGIN */
+    if (mQtiSurfaceGPPExtn && mQtiSurfaceGPPExtn->IsGPPEnabled()) {
+        return mQtiSurfaceGPPExtn->query(what, value);
+    }
+    /* QTI_END */
     return mGraphicBufferProducer->query(what, value);
 }
 
